@@ -31,6 +31,11 @@ function numericColumns(columns: string[], columnTypes?: Record<string, ColumnFi
   return nums.length > 0 ? nums : columns;
 }
 
+function hasNumericColumn(columns: string[], columnTypes?: Record<string, ColumnFilterType>): boolean {
+  if (!columnTypes) return true;
+  return columns.some((c) => columnTypes[c] === "number");
+}
+
 function round(n: number): number {
   return Math.round(n * 1e6) / 1e6;
 }
@@ -115,13 +120,24 @@ function computeAggregation(
   return { columns: resultColumns, rows: outRows };
 }
 
+function defaultSpec(
+  nextId: () => string,
+  columns: string[],
+  columnTypes?: Record<string, ColumnFilterType>
+): AggSpec {
+  if (!hasNumericColumn(columns, columnTypes)) {
+    return { id: nextId(), column: "*", fn: "count" };
+  }
+  return { id: nextId(), column: numericColumns(columns, columnTypes)[0] ?? columns[0], fn: "sum" };
+}
+
 export function AggregationPanel({ columns, columnTypes, getRows, exportFileBaseName }: Props) {
   const idCounter = useRef(0);
   const nextId = () => String(idCounter.current++);
-  const defaultColumn = numericColumns(columns, columnTypes)[0] ?? columns[0];
+  const numericAvailable = hasNumericColumn(columns, columnTypes);
 
   const [groupByCols, setGroupByCols] = useState<string[]>([]);
-  const [specs, setSpecs] = useState<AggSpec[]>([{ id: nextId(), column: defaultColumn, fn: "sum" }]);
+  const [specs, setSpecs] = useState<AggSpec[]>([defaultSpec(nextId, columns, columnTypes)]);
   const [result, setResult] = useState<{ columns: string[]; rows: Record<string, unknown>[] } | null>(null);
 
   const toggleGroupBy = (col: string) => {
@@ -129,7 +145,7 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
   };
 
   const addSpec = () => {
-    setSpecs((prev) => [...prev, { id: nextId(), column: defaultColumn, fn: "sum" }]);
+    setSpecs((prev) => [...prev, defaultSpec(nextId, columns, columnTypes)]);
   };
   const removeSpec = (id: string) => setSpecs((prev) => prev.filter((s) => s.id !== id));
   const updateSpec = (id: string, patch: Partial<AggSpec>) =>
@@ -178,7 +194,7 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
                 className="rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               >
                 {Object.entries(FN_LABELS).map(([fn, label]) => (
-                  <option key={fn} value={fn}>
+                  <option key={fn} value={fn} disabled={fn !== "count" && !numericAvailable}>
                     {label}
                   </option>
                 ))}
@@ -211,6 +227,13 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
           + Add aggregation
         </button>
       </div>
+
+      {!numericAvailable && (
+        <p className="mb-3 text-xs text-[var(--text-muted)]">
+          No numeric column in this data, so Sum/Average/Min/Max aren't available — Count still
+          works on any column.
+        </p>
+      )}
 
       <button
         type="button"

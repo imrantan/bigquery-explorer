@@ -96,7 +96,9 @@ data.
   group by one or more columns, add Sum/Average/Count/Min/Max on a
   column, then "Compute summary". It runs over the grid's current
   filter/sort, and the result is its own mini grid with its own
-  CSV/Excel export.
+  CSV/Excel export. If the (visible) columns have no numeric column,
+  Sum/Average/Min/Max are disabled and it falls back to Count, which
+  works on any column type.
 - **Export** — "Export CSV" / "Export Excel" export exactly what's
   currently visible in the grid (respecting your filters, sort, and
   shown/hidden columns).
