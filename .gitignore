@@ -19,3 +19,6 @@ frontend/dist/
 # Editors / OS
 .vscode/
 .DS_Store
+
+# Generated sample data
+sample_data/
