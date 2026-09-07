@@ -79,8 +79,17 @@ The app has two tabs: **BigQuery** and **CSV / Excel file**.
 - **Filter interactively** — every column header has a filter icon
   (text/number/date depending on the column type) and is sortable. This
   filtering happens client-side on the loaded rows, so it's instant.
+- **Show/hide columns** — the "Columns" dropdown above the grid lets you
+  toggle individual columns (or Show all / Hide all). Hidden columns are
+  excluded from exports too.
+- **Aggregate** — below the grid, build one or more summaries: optionally
+  group by one or more columns, add Sum/Average/Count/Min/Max on a
+  column, then "Compute summary". It runs over the grid's current
+  filter/sort, and the result is its own mini grid with its own
+  CSV/Excel export.
 - **Export** — "Export CSV" / "Export Excel" export exactly what's
-  currently visible in the grid (respecting your filters and sort).
+  currently visible in the grid (respecting your filters, sort, and
+  shown/hidden columns).
 
 ## Configuration
 
