@@ -48,8 +48,11 @@ export function SampleDataTab() {
         <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Sample sales dataset</h2>
         <p className="text-xs text-[var(--text-muted)]">
           A synthetic dataset bundled with the app so you can try filtering, column visibility,
-          and aggregation without connecting BigQuery or uploading a file. Columns: date,
-          location, category, channel, product_name, quantity, unit_price, revenue.
+          aggregation, and decomposition without connecting BigQuery or uploading a file. Long/P&amp;L
+          shape: date, location, category, channel, product_name, account, amount — each
+          transaction is two rows, one with account="Volume" (units) and one with
+          account="Sales" ($). Try an Aggregate ratio metric for "Sales per unit":
+          Sum(amount) where account=Sales ÷ Sum(amount) where account=Volume.
         </p>
       </div>
 
