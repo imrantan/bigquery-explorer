@@ -1,8 +1,9 @@
 # BigQuery Explorer
 
-A local web app for browsing a BigQuery table: connect a service account,
-pick a table, see its schema/size/row count, load data, filter it
-interactively, and export the filtered result as CSV or Excel.
+A local web app for browsing a table: either a BigQuery table (connect a
+service account, pick a table, see its schema/size/row count) or a local
+CSV/Excel file you drop into the browser. Either way, you get the same
+interactive filtering and CSV/Excel export.
 
 - **Backend**: FastAPI + `google-cloud-bigquery` (Python)
 - **Frontend**: React + Vite + AG Grid (TypeScript)
@@ -48,6 +49,10 @@ Then open http://localhost:5173.
 
 ## Using it
 
+The app has two tabs: **BigQuery** and **CSV / Excel file**.
+
+### BigQuery tab
+
 1. **Connect a service account** — paste the full path to your service
    account JSON key file and click Connect. The path is only read by the
    local backend process; the key file itself is never uploaded anywhere.
@@ -59,11 +64,23 @@ Then open http://localhost:5173.
 4. **Load data** — set a row limit (capped by `MAX_ROW_LIMIT`, default
    200,000) and optionally an advanced SQL `WHERE` clause / `ORDER BY` to
    scope what gets pulled from BigQuery.
-5. **Filter interactively** — every column header has a filter icon
-   (text/number/date depending on the column type) and is sortable. This
-   filtering happens client-side on the loaded rows, so it's instant.
-6. **Export** — "Export CSV" / "Export Excel" export exactly what's
-   currently visible in the grid (respecting your filters and sort).
+
+### CSV / Excel file tab
+
+1. **Drag & drop, or choose, a `.csv` or `.xlsx` file.** Everything is
+   parsed in the browser — the file never touches the backend.
+2. **Multi-sheet workbooks** get a sheet picker; switching sheets
+   re-parses instantly from the already-loaded workbook.
+3. Column filter types (text/number/date) are inferred from the parsed
+   data automatically.
+
+### Both tabs
+
+- **Filter interactively** — every column header has a filter icon
+  (text/number/date depending on the column type) and is sortable. This
+  filtering happens client-side on the loaded rows, so it's instant.
+- **Export** — "Export CSV" / "Export Excel" export exactly what's
+  currently visible in the grid (respecting your filters and sort).
 
 ## Configuration
 
@@ -87,3 +104,6 @@ Copy `backend/.env.example` to `backend/.env` to change defaults:
 - Data grid filtering/sorting/export happens on the rows loaded by "Load
   data", not the whole table — raise the row limit or narrow with a
   `WHERE` clause for large tables rather than loading everything.
+- The file tab supports `.csv` and `.xlsx` only. Legacy binary `.xls`
+  isn't supported (the parsing library doesn't read that format) — save
+  as `.xlsx` or `.csv` first.
