@@ -1,13 +1,9 @@
 import ExcelJS from "exceljs";
 import Papa from "papaparse";
 import { useRef, useState } from "react";
-import type { ColumnFilterType } from "./DataGrid";
 import { DataGrid } from "./DataGrid";
-
-interface ParsedData {
-  columns: string[];
-  rows: Record<string, unknown>[];
-}
+import type { ParsedData } from "../lib/tabularData";
+import { inferColumnTypes } from "../lib/tabularData";
 
 function cellToValue(cell: ExcelJS.Cell): unknown {
   const v = cell.value;
@@ -44,28 +40,6 @@ function parseWorksheet(ws: ExcelJS.Worksheet): ParsedData {
     rows.push(obj);
   }
   return { columns, rows };
-}
-
-function inferColumnTypes(
-  rows: Record<string, unknown>[],
-  columns: string[]
-): Record<string, ColumnFilterType> {
-  const types: Record<string, ColumnFilterType> = {};
-  for (const col of columns) {
-    let allNumber = true;
-    let allDate = true;
-    let sawValue = false;
-    for (const row of rows) {
-      const v = row[col];
-      if (v === null || v === undefined || v === "") continue;
-      sawValue = true;
-      if (typeof v !== "number") allNumber = false;
-      if (!(v instanceof Date)) allDate = false;
-      if (!allNumber && !allDate) break;
-    }
-    types[col] = sawValue && allDate ? "date" : sawValue && allNumber ? "number" : "text";
-  }
-  return types;
 }
 
 export function FileDataPanel() {

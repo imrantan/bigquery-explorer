@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { BigQueryTab } from "./components/BigQueryTab";
 import { FileDataPanel } from "./components/FileDataPanel";
+import { SampleDataTab } from "./components/SampleDataTab";
 
-type Tab = "bigquery" | "file";
+type Tab = "bigquery" | "file" | "sample";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "bigquery", label: "BigQuery" },
   { id: "file", label: "CSV / Excel file" },
+  { id: "sample", label: "Sample data" },
 ];
 
 export default function App() {
@@ -18,8 +20,8 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 py-3">
           <h1 className="text-lg font-semibold text-[var(--text)]">BigQuery Explorer</h1>
           <p className="text-xs text-[var(--text-muted)]">
-            Browse a table from BigQuery or a local file, filter it interactively, and export to
-            CSV or Excel.
+            Browse a table from BigQuery, a local file, or the bundled sample dataset, filter it
+            interactively, and export to CSV or Excel.
           </p>
         </div>
         <nav className="max-w-6xl mx-auto px-4 flex gap-1">
@@ -41,7 +43,9 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-4">
-        {tab === "bigquery" ? <BigQueryTab /> : <FileDataPanel />}
+        {tab === "bigquery" && <BigQueryTab />}
+        {tab === "file" && <FileDataPanel />}
+        {tab === "sample" && <SampleDataTab />}
       </main>
     </div>
   );
