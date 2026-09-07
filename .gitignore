@@ -1,0 +1,21 @@
+# Secrets
+*.json
+!config/saved_tables.json
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/tsconfig*.json
+.env
+
+# Python
+backend/venv/
+backend/__pycache__/
+backend/app/__pycache__/
+*.pyc
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Editors / OS
+.vscode/
+.DS_Store
