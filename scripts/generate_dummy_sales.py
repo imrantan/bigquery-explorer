@@ -1,6 +1,11 @@
 """Generates a dummy sales CSV for testing BigQuery Explorer's file tab.
 
-Usage: python scripts/generate_dummy_sales.py [num_rows] [output_path]
+Long/P&L shape: each transaction produces two rows sharing the same
+date/location/category/channel/product_name, distinguished by `account`
+("Volume" = units sold, "Sales" = $ revenue) with a single `amount` column.
+Sales per unit = Sum(amount where account=Sales) / Sum(amount where account=Volume).
+
+Usage: python scripts/generate_dummy_sales.py [total_rows] [output_path]
 """
 
 import csv
@@ -9,7 +14,8 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-NUM_ROWS = int(sys.argv[1]) if len(sys.argv) > 1 else 40_000
+TOTAL_ROWS = int(sys.argv[1]) if len(sys.argv) > 1 else 30_000
+NUM_TRANSACTIONS = max(1, TOTAL_ROWS // 2)
 OUTPUT_PATH = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(__file__).resolve().parent.parent / "sample_data" / "dummy_sales.csv"
 
 random.seed(42)
@@ -88,13 +94,12 @@ def random_date() -> date:
 def main() -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+    rows_written = 0
     with open(OUTPUT_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(
-            ["date", "location", "category", "channel", "product_name", "quantity", "unit_price", "revenue"]
-        )
+        writer.writerow(["date", "location", "category", "channel", "product_name", "account", "amount"])
 
-        for _ in range(NUM_ROWS):
+        for _ in range(NUM_TRANSACTIONS):
             category = random.choice(CATEGORY_NAMES)
             products, (lo, hi) = CATEGORIES[category]
             product = random.choice(products)
@@ -103,12 +108,13 @@ def main() -> None:
             quantity = random.randint(1, 20)
             unit_price = round(random.uniform(lo, hi), 2)
             revenue = round(quantity * unit_price, 2)
+            txn_date = random_date().isoformat()
 
-            writer.writerow(
-                [random_date().isoformat(), location, category, channel, product, quantity, unit_price, revenue]
-            )
+            writer.writerow([txn_date, location, category, channel, product, "Volume", quantity])
+            writer.writerow([txn_date, location, category, channel, product, "Sales", revenue])
+            rows_written += 2
 
-    print(f"Wrote {NUM_ROWS:,} rows to {OUTPUT_PATH}")
+    print(f"Wrote {rows_written:,} rows ({NUM_TRANSACTIONS:,} transactions) to {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":
