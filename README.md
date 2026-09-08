@@ -118,6 +118,16 @@ data.
   or Count of a column — only additive measures decompose sensibly, so
   Average/Min/Max aren't offered) plus an optional filter; the tree builds
   itself from the grid's rows automatically.
+  - **Choosing accounts.** If the data has a column that says *which
+    measure a row is* (like `account` with Volume/Sales), summing across it
+    would add units to currency. The tree spots that — by name, or by
+    noticing each transaction is repeated once per value — and asks which
+    values you want before building. Pick one (Volume only), several
+    (Volume **and** Sales, shown as separate lines on every node, never
+    added together), or "Combine into one total". **Split measure by** /
+    **Show** change it later, **Rank by** picks which one drives the
+    sorting, bars and %, and a per-unit line (primary ÷ secondary, i.e.
+    sales per unit) can be toggled on each node.
   - Click the **+** on a node to open the split menu, which offers
     **AI splits** (*High value* picks the field with the strongest top
     contributor, *Low value* the most extreme underperformer — a variance
