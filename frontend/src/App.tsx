@@ -16,33 +16,44 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
+      <div className="ig-gradient h-1 w-full" />
       <header className="border-b border-[var(--border)] bg-[var(--surface)]">
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <h1 className="text-lg font-semibold text-[var(--text)]">BigQuery Explorer</h1>
-          <p className="text-xs text-[var(--text-muted)]">
-            Browse a table from BigQuery, a local file, or the bundled sample dataset, filter it
-            interactively, and export to CSV or Excel.
-          </p>
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+          <div className="ig-gradient flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base font-bold text-white shadow-sm">
+            ▦
+          </div>
+          <div>
+            <h1 className="text-[17px] font-semibold leading-tight text-[var(--text)]">
+              BigQuery Explorer
+            </h1>
+            <p className="text-xs text-[var(--text-muted)]">
+              Browse a table from BigQuery, a local file, or the bundled sample dataset — filter,
+              aggregate, decompose, and export.
+            </p>
+          </div>
         </div>
-        <nav className="max-w-6xl mx-auto px-4 flex gap-1">
+        <nav className="mx-auto flex max-w-6xl gap-1 px-4">
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              className={`relative px-3 py-2.5 text-sm font-semibold transition-colors ${
                 tab === t.id
-                  ? "border-[var(--accent)] text-[var(--text)]"
-                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
+                  ? "text-[var(--text)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]"
               }`}
             >
               {t.label}
+              {tab === t.id && (
+                <span className="ig-gradient absolute inset-x-2 -bottom-px h-0.5 rounded-full" />
+              )}
             </button>
           ))}
         </nav>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-4">
+      <main className="mx-auto max-w-6xl px-4 py-4">
         {tab === "bigquery" && <BigQueryTab />}
         {tab === "file" && <FileDataPanel />}
         {tab === "sample" && <SampleDataTab />}

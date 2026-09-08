@@ -44,7 +44,7 @@ export function SampleDataTab() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Sample sales dataset</h2>
         <p className="text-xs text-[var(--text-muted)]">
           A synthetic dataset bundled with the app so you can try filtering, column visibility,
@@ -60,7 +60,7 @@ export function SampleDataTab() {
       {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
       {data && (
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
           <DataGrid
             rows={data.rows}
             columns={data.columns}

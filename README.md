@@ -6,7 +6,8 @@ CSV/Excel file you drop into the browser. Either way, you get the same
 interactive filtering and CSV/Excel export.
 
 - **Backend**: FastAPI + `google-cloud-bigquery` (Python)
-- **Frontend**: React + Vite + AG Grid (TypeScript)
+- **Frontend**: React + Vite + AG Grid (TypeScript), Instagram-flavoured
+  light theme (light only — it ignores your OS dark-mode setting by design)
 
 ## Prerequisites
 
@@ -113,17 +114,24 @@ data.
     where `account = Volume`.
   - Click **"Compute summary"** to run it. The result is its own mini
     grid with its own CSV/Excel export.
-- **Decompose** — a Power BI "decomposition tree"-style drill-down. Pick a
-  measure (Sum or Count of a column, since only additive measures
-  decompose sensibly — not Average/Min/Max) and an optional filter, click
-  **"Build tree"**, then click **"Split by…"** and pick a dimension to see
-  the total broken into its top contributing values (with an "Other"
-  bucket for the rest), each showing its % of the parent. Click any value
-  to drill into it, then pick another dimension to split further; you can
-  also change a level's dimension to branch elsewhere, which drops
-  anything drilled deeper than that level. It works on a snapshot of the
-  grid's filtered rows taken when you click "Build tree" — click it again
-  after changing filters above to refresh.
+- **Decompose** — a Power BI-style decomposition tree. Pick a measure (Sum
+  or Count of a column — only additive measures decompose sensibly, so
+  Average/Min/Max aren't offered) plus an optional filter; the tree builds
+  itself from the grid's rows automatically.
+  - Click the **+** on a node to open the split menu, which offers
+    **AI splits** (*High value* picks the field with the strongest top
+    contributor, *Low value* the most extreme underperformer — a variance
+    heuristic, not ML) above the plain field list.
+  - Each level is a column headed by its field name with an **✕** to
+    remove it and everything to its right. Nodes are sorted by value and
+    show an abbreviated value (3.65M), their % of parent, and a bar
+    relative to their largest sibling. Curved ribbons connect the selected
+    parent to its children, with the selected path picking up the gradient.
+  - Clicking a different value **keeps the deeper levels** and recomputes
+    them for that node (as Power BI does) — you don't lose your drill path.
+  - **Expand** opens it full-screen (Power BI's focus mode); Escape closes.
+  - It reads a snapshot of the grid's filtered rows — hit **Refresh** after
+    changing the grid's filters.
 - **Export** — "Export CSV" / "Export Excel" export exactly what's
   currently visible in the grid (respecting your filters, sort, and
   shown/hidden columns).

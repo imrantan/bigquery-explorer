@@ -52,7 +52,7 @@ export function BigQueryDataPanel({ tableId, schema, defaultRowLimit, maxRowLimi
   };
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
       <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Data</h2>
 
       <div className="flex flex-wrap items-end gap-3 mb-3">
@@ -64,7 +64,7 @@ export function BigQueryDataPanel({ tableId, schema, defaultRowLimit, maxRowLimi
             max={maxRowLimit}
             value={rowLimit}
             onChange={(e) => setRowLimit(Number(e.target.value))}
-            className="w-28 rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            className="w-28 rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           />
         </div>
         <div className="flex-1 min-w-[220px]">
@@ -76,7 +76,7 @@ export function BigQueryDataPanel({ tableId, schema, defaultRowLimit, maxRowLimi
             value={whereClause}
             onChange={(e) => setWhereClause(e.target.value)}
             placeholder="e.g. status = 'active' AND created_at > '2026-01-01'"
-            className="w-full rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            className="w-full rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           />
         </div>
         <div>
@@ -86,7 +86,7 @@ export function BigQueryDataPanel({ tableId, schema, defaultRowLimit, maxRowLimi
             value={orderBy}
             onChange={(e) => setOrderBy(e.target.value)}
             placeholder="column"
-            className="w-36 rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            className="w-36 rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           />
         </div>
         <div>
@@ -94,7 +94,7 @@ export function BigQueryDataPanel({ tableId, schema, defaultRowLimit, maxRowLimi
           <select
             value={orderDir}
             onChange={(e) => setOrderDir(e.target.value as "ASC" | "DESC")}
-            className="rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           >
             <option value="ASC">ASC</option>
             <option value="DESC">DESC</option>
@@ -104,7 +104,7 @@ export function BigQueryDataPanel({ tableId, schema, defaultRowLimit, maxRowLimi
           type="button"
           onClick={load}
           disabled={loading}
-          className="rounded-md bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50"
+          className="rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50"
         >
           {loading ? "Loading…" : "Load data"}
         </button>

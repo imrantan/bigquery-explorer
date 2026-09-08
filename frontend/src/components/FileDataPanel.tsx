@@ -146,7 +146,7 @@ export function FileDataPanel() {
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
-        className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors bg-[var(--surface)] ${
+        className={`rounded-xl border-2 border-dashed p-8 text-center transition-colors bg-[var(--surface)] ${
           dragOver ? "border-[var(--accent)] bg-[var(--accent)]/5" : "border-[var(--border)]"
         }`}
       >
@@ -154,7 +154,7 @@ export function FileDataPanel() {
           Drag &amp; drop a .csv or .xlsx file here
         </p>
         <p className="text-xs text-[var(--text-muted)] mb-3">or</p>
-        <label className="inline-block cursor-pointer rounded-md bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-[var(--accent-fg)]">
+        <label className="inline-block cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-[var(--accent-fg)]">
           Choose file
           <input
             type="file"
@@ -179,7 +179,7 @@ export function FileDataPanel() {
           <select
             value={selectedSheet}
             onChange={(e) => handleSheetChange(e.target.value)}
-            className="rounded-md border border-[var(--border)] bg-transparent px-2 py-1 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           >
             {sheetNames.map((name) => (
               <option key={name} value={name}>
@@ -191,7 +191,7 @@ export function FileDataPanel() {
       )}
 
       {parsed && (
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
           <DataGrid
             rows={parsed.rows}
             columns={parsed.columns}

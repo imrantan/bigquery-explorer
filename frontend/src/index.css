@@ -1,30 +1,29 @@
 @import "tailwindcss";
 
+/* Instagram-flavoured light theme. Light only — no dark palette by design. */
 :root {
-  --bg: #f7f7f8;
+  --bg: #fafafa;
   --surface: #ffffff;
-  --border: #e2e2e6;
-  --text: #17171a;
-  --text-muted: #6b6b74;
-  --accent: #2563eb;
+  --surface-alt: #f7f7f7;
+  --border: #dbdbdb;
+  --border-strong: #c7c7c7;
+  --text: #262626;
+  --text-muted: #8e8e8e;
+  --accent: #0095f6;
+  --accent-hover: #1877f2;
   --accent-fg: #ffffff;
-  --danger: #dc2626;
-  --success: #16a34a;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #101114;
-    --surface: #17181c;
-    --border: #2b2c32;
-    --text: #edeef0;
-    --text-muted: #9a9aa2;
-    --accent: #3b82f6;
-    --accent-fg: #0b1220;
-    --danger: #f87171;
-    --success: #4ade80;
-  }
+  --accent-soft: #e8f4fe;
+  --danger: #ed4956;
+  --success: #2e9f4f;
+  --ig-gradient: linear-gradient(
+    45deg,
+    #f58529 0%,
+    #feda77 18%,
+    #dd2a7b 50%,
+    #8134af 76%,
+    #515bd4 100%
+  );
+  color-scheme: light;
 }
 
 * {
@@ -39,9 +38,33 @@ body,
 
 body {
   margin: 0;
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* AG Grid theme tweaks live in App.tsx via the ag-theme-quartz classes */
+.ig-gradient {
+  background-image: var(--ig-gradient);
+}
+
+.ig-gradient-text {
+  background-image: var(--ig-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Thin, unobtrusive scrollbars inside the decomposition tree columns */
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 999px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}

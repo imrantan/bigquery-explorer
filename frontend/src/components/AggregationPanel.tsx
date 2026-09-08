@@ -216,10 +216,10 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
       <div className="mb-3 max-w-xs">
         <label className="block text-xs text-[var(--text-muted)] mb-1">Group by (optional)</label>
         <details className="relative">
-          <summary className="cursor-pointer list-none rounded-md border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] truncate">
+          <summary className="cursor-pointer list-none rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] truncate">
             {groupByCols.length ? groupByCols.join(", ") : "All rows (no grouping)"}
           </summary>
-          <div className="absolute z-10 mt-1 max-h-56 w-64 overflow-y-auto rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 shadow-lg">
+          <div className="absolute z-10 mt-1 max-h-56 w-64 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 shadow-lg">
             {columns.map((col) => (
               <label key={col} className="flex items-center gap-2 px-1 py-1 text-sm text-[var(--text)]">
                 <input type="checkbox" checked={groupByCols.includes(col)} onChange={() => toggleGroupBy(col)} />
@@ -245,7 +245,7 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
                     column: choices.includes(spec.column) ? spec.column : choices[0],
                   });
                 }}
-                className="rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               >
                 {Object.entries(FN_LABELS).map(([fn, label]) => (
                   <option key={fn} value={fn} disabled={fn !== "count" && !numericAvailable}>
@@ -257,7 +257,7 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
               <select
                 value={spec.column}
                 onChange={(e) => updateSpec(spec.id, { column: e.target.value })}
-                className="flex-1 max-w-xs rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                className="flex-1 max-w-xs rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               >
                 {spec.fn === "count" && <option value="*">All rows (*)</option>}
                 {colChoices.map((col) => (
@@ -297,14 +297,14 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
           {ratios.map((ratio) => (
             <div
               key={ratio.id}
-              className="rounded-md border border-[var(--border)] p-2 space-y-1.5 max-w-xl"
+              className="rounded-lg border border-[var(--border)] p-2 space-y-1.5 max-w-xl"
             >
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">Numerator</span>
                 <select
                   value={ratio.numeratorColumn}
                   onChange={(e) => updateRatio(ratio.id, { numeratorColumn: e.target.value })}
-                  className="rounded-md border border-[var(--border)] bg-transparent px-2 py-1 text-sm text-[var(--text)]"
+                  className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1 text-sm text-[var(--text)]"
                 >
                   {numCols.map((col) => (
                     <option key={col} value={col}>
@@ -323,7 +323,7 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
                 <select
                   value={ratio.denominatorColumn}
                   onChange={(e) => updateRatio(ratio.id, { denominatorColumn: e.target.value })}
-                  className="rounded-md border border-[var(--border)] bg-transparent px-2 py-1 text-sm text-[var(--text)]"
+                  className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1 text-sm text-[var(--text)]"
                 >
                   {numCols.map((col) => (
                     <option key={col} value={col}>
@@ -357,7 +357,7 @@ export function AggregationPanel({ columns, columnTypes, getRows, exportFileBase
         type="button"
         onClick={compute}
         disabled={specs.length === 0 && ratios.length === 0}
-        className="mb-3 rounded-md bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50"
+        className="mb-3 rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50"
       >
         Compute summary
       </button>

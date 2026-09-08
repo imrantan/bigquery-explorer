@@ -48,7 +48,7 @@ export function TableSelector({
   };
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
       <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Table</h2>
 
       {savedTables.length > 0 && (
@@ -59,7 +59,7 @@ export function TableSelector({
               className={`flex items-center justify-between rounded-md px-2 py-1.5 text-sm cursor-pointer ${
                 activeTableId === t.table_id
                   ? "bg-[var(--accent)] text-[var(--accent-fg)]"
-                  : "hover:bg-black/5 dark:hover:bg-white/5 text-[var(--text)]"
+                  : "hover:bg-[var(--surface-alt)] text-[var(--text)]"
               }`}
               onClick={() => !disabled && onSelect(t.table_id)}
             >
@@ -98,13 +98,13 @@ export function TableSelector({
           value={customTable}
           onChange={(e) => setCustomTable(e.target.value)}
           placeholder="my-project.my_dataset.my_table"
-          className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-1.5 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          className="w-full rounded-lg border border-[var(--border)] bg-transparent px-3 py-1.5 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         />
         <div className="flex gap-2">
           <button
             type="submit"
             disabled={disabled || !customTable.trim()}
-            className="flex-1 rounded-md bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50"
+            className="flex-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50"
           >
             Use table
           </button>
@@ -115,13 +115,13 @@ export function TableSelector({
             value={saveLabel}
             onChange={(e) => setSaveLabel(e.target.value)}
             placeholder="Optional label to save it"
-            className="flex-1 rounded-md border border-[var(--border)] bg-transparent px-3 py-1.5 text-xs text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-3 py-1.5 text-xs text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           />
           <button
             type="button"
             onClick={handleSave}
             disabled={!customTable.trim()}
-            className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text)] disabled:opacity-50"
+            className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text)] disabled:opacity-50"
           >
             Save
           </button>

@@ -8,7 +8,7 @@ function formatDate(iso: string | null): string {
 
 export function TableInfoPanel({ info }: { info: TableInfo }) {
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
         <h2 className="text-sm font-semibold text-[var(--text)] font-mono">{info.table_id}</h2>
       </div>
