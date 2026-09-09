@@ -139,9 +139,19 @@ data.
     parent to its children, with the selected path picking up the gradient.
   - Clicking a different value **keeps the deeper levels** and recomputes
     them for that node (as Power BI does) — you don't lose your drill path.
+  - **Period.** If a date column is present it's detected automatically and
+    you get **Period** (Month / Quarter / Year) plus **From** and **To**
+    dropdowns listing only the periods that actually contain rows — "Jan
+    2025", "Q1 2025", "2025". Set From and To to the same entry for a single
+    month, span them for a quarter or YTD, or leave them at
+    Earliest/Latest for everything. Period changes apply instantly, and a
+    row count next to the controls shows how much of the data you're
+    looking at.
+  - **Settings** collapses the measure/account/filter controls so the
+    period picker and the tree stay the focus.
   - **Expand** opens it full-screen (Power BI's focus mode); Escape closes.
   - It reads a snapshot of the grid's filtered rows — hit **Refresh** after
-    changing the grid's filters.
+    changing the grid's filters (the period picker doesn't need it).
 - **Export** — "Export CSV" / "Export Excel" export exactly what's
   currently visible in the grid (respecting your filters, sort, and
   shown/hidden columns).

@@ -35,6 +35,58 @@ const BLANK = "(blank)";
 const ROOT_KEY = "root";
 /** Column names that usually mean "which measure is this row", in P&L-style extracts. */
 const ACCOUNT_HINTS = ["account", "measure", "metric", "kpi", "scenario", "indicator"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+type Grain = "month" | "quarter" | "year";
+
+/**
+ * Dates reach us as ISO strings (BigQuery and CSV) or real Dates (Excel).
+ * Date-only strings are split by hand rather than handed to `new Date(s)`,
+ * which parses them as UTC midnight — in a negative-offset timezone that
+ * reads back as the previous day, quietly moving 2025-01-01 into Dec 2024.
+ */
+function parseDateValue(value: unknown): Date | null {
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value !== "string") return null;
+  const s = value.trim();
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?(?:[T ](.*))?$/.exec(s);
+  if (!m) return null;
+  if (!m[4]) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3] ?? "1"));
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Sortable key plus a human label — keys compare lexicographically within a grain. */
+function periodOf(d: Date, grain: Grain): { key: string; label: string } {
+  const year = d.getFullYear();
+  if (grain === "year") return { key: String(year), label: String(year) };
+  if (grain === "quarter") {
+    const q = Math.floor(d.getMonth() / 3) + 1;
+    return { key: `${year}-Q${q}`, label: `Q${q} ${year}` };
+  }
+  const month = d.getMonth();
+  return {
+    key: `${year}-${String(month + 1).padStart(2, "0")}`,
+    label: `${MONTHS[month]} ${year}`,
+  };
+}
+
+function detectDateColumns(rows: Row[], columns: string[]): string[] {
+  const found: string[] = [];
+  for (const col of columns) {
+    let checked = 0;
+    let parsed = 0;
+    for (const row of rows) {
+      const v = row[col];
+      if (v === null || v === undefined || v === "") continue;
+      checked++;
+      if (parseDateValue(v)) parsed++;
+      if (checked >= 60) break;
+    }
+    if (checked >= 5 && parsed / checked >= 0.9) found.push(col);
+  }
+  return found;
+}
 
 function keyOf(row: Row, dimension: string): string {
   const v = row[dimension];
@@ -91,7 +143,7 @@ function computeNodes(
  * dimension like region scores low. This is what separates a real account column
  * from any old two-valued text column.
  */
-function pairedFraction(rows: Row[], col: string, otherCols: string[], valueCount: number): number {
+function pairedFraction(rows: Row[], otherCols: string[], valueCount: number): number {
   if (otherCols.length === 0) return 0;
   const counts = new Map<string, number>();
   for (const row of rows) {
@@ -135,7 +187,7 @@ function detectBreakdown(
     if (tooMany || counts.size < 2) continue;
 
     const otherCols = columns.filter((c) => c !== col && c !== measureColumn);
-    const paired = pairedFraction(rows, col, otherCols, counts.size);
+    const paired = pairedFraction(rows, otherCols, counts.size);
     const named = ACCOUNT_HINTS.some((h) => col.toLowerCase().includes(h));
 
     // Confident when the name says so, or the rows are structurally paired.
@@ -210,7 +262,13 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
   const [measureFn, setMeasureFn] = useState<MeasureFn>(numCols.length > 0 ? "sum" : "count");
   const [measureColumn, setMeasureColumn] = useState(numCols[0] ?? "*");
   const [filter, setFilter] = useState<SimpleFilter | null>(null);
-  const [baseRows, setBaseRows] = useState<Row[] | null>(null);
+  /** Raw pull from the grid (before the period range) — period options come from this. */
+  const [snapshot, setSnapshot] = useState<Row[] | null>(null);
+  const [dateColumn, setDateColumn] = useState("");
+  const [grain, setGrain] = useState<Grain>("month");
+  const [periodFrom, setPeriodFrom] = useState("");
+  const [periodTo, setPeriodTo] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(true);
   const [levels, setLevels] = useState<string[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [focused, setFocused] = useState(false);
@@ -249,16 +307,15 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
   }, [breakdownColumn, orderedValues, measureLabel]);
 
   const breakdownOptions = useMemo(() => {
-    if (!breakdownColumn || !baseRows) return [];
+    if (!breakdownColumn || !snapshot) return [];
     const seen = new Set<string>();
-    for (const row of baseRows) seen.add(keyOf(row, breakdownColumn));
+    for (const row of snapshot) seen.add(keyOf(row, breakdownColumn));
     return Array.from(seen).sort();
-  }, [breakdownColumn, baseRows]);
+  }, [breakdownColumn, snapshot]);
 
   const build = useCallback(() => {
     const rows = getRows().filter((r) => matchesFilter(r, filter));
-    setBaseRows(rows);
-    setSelected((prev) => repairSelection(rows, levels, prev, measureColumn, measureFn, series));
+    setSnapshot(rows);
 
     if (!breakdownConfirmed) {
       const found = detectBreakdown(rows, columns, columnTypes, measureColumn);
@@ -271,22 +328,63 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
         setBreakdownConfirmed(true);
       }
     }
-  }, [
-    getRows,
-    filter,
-    levels,
-    measureColumn,
-    measureFn,
-    series,
-    breakdownConfirmed,
-    columns,
-    columnTypes,
-  ]);
+  }, [getRows, filter, measureColumn, breakdownConfirmed, columns, columnTypes]);
 
   // Pull an initial snapshot as soon as the grid is live.
   useEffect(() => {
-    if (gridReady && baseRows === null) build();
-  }, [gridReady, baseRows, build]);
+    if (gridReady && snapshot === null) build();
+  }, [gridReady, snapshot, build]);
+
+  const dateColumns = useMemo(
+    () => (snapshot ? detectDateColumns(snapshot, columns) : []),
+    [snapshot, columns]
+  );
+
+  useEffect(() => {
+    if (dateColumns.length > 0 && !dateColumns.includes(dateColumn)) setDateColumn(dateColumns[0]);
+    else if (dateColumns.length === 0 && dateColumn) setDateColumn("");
+  }, [dateColumns, dateColumn]);
+
+  /** Every period present in the data, newest first. Derived from the pre-period snapshot. */
+  const periodOptions = useMemo(() => {
+    if (!snapshot || !dateColumn) return [];
+    const seen = new Map<string, string>();
+    for (const row of snapshot) {
+      const d = parseDateValue(row[dateColumn]);
+      if (!d) continue;
+      const p = periodOf(d, grain);
+      if (!seen.has(p.key)) seen.set(p.key, p.label);
+    }
+    return Array.from(seen, ([key, label]) => ({ key, label })).sort((a, b) =>
+      b.key.localeCompare(a.key)
+    );
+  }, [snapshot, dateColumn, grain]);
+
+  const baseRows = useMemo(() => {
+    if (!snapshot) return null;
+    if (!dateColumn || (!periodFrom && !periodTo)) return snapshot;
+    // Tolerate the bounds being picked in either order.
+    const bounds = [periodFrom, periodTo].filter(Boolean).sort();
+    const lo = periodFrom && periodTo ? bounds[0] : periodFrom || null;
+    const hi = periodFrom && periodTo ? bounds[1] : periodTo || null;
+    return snapshot.filter((row) => {
+      const d = parseDateValue(row[dateColumn]);
+      if (!d) return false;
+      const key = periodOf(d, grain).key;
+      if (lo && key < lo) return false;
+      if (hi && key > hi) return false;
+      return true;
+    });
+  }, [snapshot, dateColumn, grain, periodFrom, periodTo]);
+
+  // Period/measure changes can invalidate a drill selection; put it back on the rails.
+  useEffect(() => {
+    if (!baseRows) return;
+    setSelected((prev) => {
+      const next = repairSelection(baseRows, levels, prev, measureColumn, measureFn, series);
+      return next.length === prev.length && next.every((v, i) => v === prev[i]) ? prev : next;
+    });
+  }, [baseRows, levels, measureColumn, measureFn, series]);
 
   // rowsPerLevel[i] = rows feeding level i (after applying selections 0..i-1)
   const rowsPerLevel = useMemo(() => {
@@ -456,6 +554,130 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
   const columnHeight = focused ? "calc(100vh - 290px)" : "352px";
   const cardWidth = series.length > 1 ? "w-60" : "w-52";
 
+  const selectClass =
+    "rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]";
+
+  const periodBar = (
+    <div className="mb-3 flex flex-wrap items-end gap-3">
+      {dateColumn && (
+        <>
+          <div>
+            <label className="mb-1 block text-xs text-[var(--text-muted)]">Period</label>
+            <select
+              value={grain}
+              onChange={(e) => {
+                setGrain(e.target.value as Grain);
+                setPeriodFrom("");
+                setPeriodTo("");
+              }}
+              className={selectClass}
+            >
+              <option value="month">Month</option>
+              <option value="quarter">Quarter</option>
+              <option value="year">Year</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-[var(--text-muted)]">From</label>
+            <select
+              value={periodFrom}
+              onChange={(e) => setPeriodFrom(e.target.value)}
+              className={selectClass}
+            >
+              <option value="">Earliest</option>
+              {periodOptions.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-[var(--text-muted)]">To</label>
+            <select
+              value={periodTo}
+              onChange={(e) => setPeriodTo(e.target.value)}
+              className={selectClass}
+            >
+              <option value="">Latest</option>
+              {periodOptions.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          {(periodFrom || periodTo) && (
+            <button
+              type="button"
+              onClick={() => {
+                setPeriodFrom("");
+                setPeriodTo("");
+              }}
+              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-semibold text-[var(--text)] hover:bg-[var(--surface-alt)]"
+            >
+              All periods
+            </button>
+          )}
+          {dateColumns.length > 1 && (
+            <div>
+              <label className="mb-1 block text-xs text-[var(--text-muted)]">Date column</label>
+              <select
+                value={dateColumn}
+                onChange={(e) => {
+                  setDateColumn(e.target.value);
+                  setPeriodFrom("");
+                  setPeriodTo("");
+                }}
+                className={selectClass}
+              >
+                {dateColumns.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </>
+      )}
+
+      <button
+        type="button"
+        onClick={build}
+        className="rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]"
+      >
+        {snapshot === null ? "Build tree" : "Refresh"}
+      </button>
+      {levels.length > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            setLevels([]);
+            setSelected([]);
+          }}
+          className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-semibold text-[var(--text)] hover:bg-[var(--surface-alt)]"
+        >
+          Reset
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => setSettingsOpen((v) => !v)}
+        className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-semibold text-[var(--text)] hover:bg-[var(--surface-alt)]"
+      >
+        Settings {settingsOpen ? "▴" : "▾"}
+      </button>
+      {snapshot && baseRows && (
+        <span className="pb-1.5 text-xs text-[var(--text-muted)]">
+          {baseRows.length === snapshot.length
+            ? `${snapshot.length.toLocaleString()} rows`
+            : `${baseRows.length.toLocaleString()} of ${snapshot.length.toLocaleString()} rows`}
+        </span>
+      )}
+    </div>
+  );
+
   const controls = (
     <div className="mb-3 flex flex-wrap items-end gap-3">
       <div>
@@ -494,25 +716,6 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
         <label className="mb-1 block text-xs text-[var(--text-muted)]">Filter (optional)</label>
         <FilterEditor columns={columns} value={filter} onChange={setFilter} />
       </div>
-      <button
-        type="button"
-        onClick={build}
-        className="rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]"
-      >
-        {baseRows === null ? "Build tree" : "Refresh"}
-      </button>
-      {levels.length > 0 && (
-        <button
-          type="button"
-          onClick={() => {
-            setLevels([]);
-            setSelected([]);
-          }}
-          className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-semibold text-[var(--text)] hover:bg-[var(--surface-alt)]"
-        >
-          Reset
-        </button>
-      )}
     </div>
   );
 
@@ -730,6 +933,8 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
     </div>
   );
 
+  const awaitingAccountChoice = Boolean(detected && !breakdownConfirmed);
+
   let body: React.ReactNode;
   if (!gridReady || baseRows === null) {
     body = (
@@ -738,7 +943,11 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
       </p>
     );
   } else if (baseRows.length === 0) {
-    body = <p className="text-xs text-[var(--danger)]">No rows match the current filter.</p>;
+    body = (
+      <p className="text-xs text-[var(--danger)]">
+        No rows in this period{filter ? " / filter" : ""}. Try widening the period range.
+      </p>
+    );
   } else if (detected && !breakdownConfirmed) {
     body = (
       <div className="max-w-2xl rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
@@ -797,16 +1006,30 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
   } else {
     body = (
       <>
-        {breakdownControls}
         {canvas}
         <p className="mt-2 text-xs text-[var(--text-muted)]">
           Click <strong>+</strong> on a node to add a level, click any value to drill into it
-          (deeper levels stay and recompute), and use a level's ✕ to remove it. Built from the
-          grid's filtered rows at the time you last hit Build tree / Refresh.
+          (deeper levels stay and recompute), and use a level's ✕ to remove it. Period changes
+          apply instantly; <strong>Refresh</strong> re-pulls rows after you change the grid's own
+          filters.
         </p>
       </>
     );
   }
+
+  /** Period bar stays put; the rest of the configuration collapses out of the way. */
+  const header = (
+    <>
+      {periodBar}
+      {settingsOpen && (
+        <div className="mb-3 rounded-xl border border-[var(--border)] bg-[var(--surface-alt)] p-3">
+          {controls}
+          {/* While the prompt is asking which accounts to show, these would duplicate it. */}
+          {!awaitingAccountChoice && breakdownControls}
+        </div>
+      )}
+    </>
+  );
 
   const menuPanel = menu && (
     <div
@@ -864,7 +1087,7 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
               Close
             </button>
           </div>
-          {controls}
+          {header}
           <div className="min-h-0 flex-1 overflow-auto">{body}</div>
         </div>
         {menuPanel}
@@ -884,7 +1107,7 @@ export function DecompositionTree({ columns, columnTypes, getRows, gridReady }: 
           Expand
         </button>
       </div>
-      {controls}
+      {header}
       {body}
       {menuPanel}
     </div>
